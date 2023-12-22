@@ -1,6 +1,7 @@
 #!/bin/bash
-#Desc: Fetch senasa vpn auth code tool
-VERSION="v0.0.1"
+#Desc: Fetch auth code tool
+VERSION="v0.0.2"
+
 # Decrypts passwords quietly
 # see: https://wiki.archlinux.org/index.php/Mutt#Passwords_management
 . <(gpg -qd "creds.gpg")
@@ -9,10 +10,11 @@ VERSION="v0.0.1"
 username=$my_user
 # Password assigned from decrypted file
 password=$my_pass
-
+# String that preceds code in the email subject
+prefix="AuthCode:"
 
 fetch_mails () {
-  # Num of recent unread mails to be fetch
+  # No of recent unread mails to be fetch
   COUNT=$@
   # Parse mails from gmail feed in reverse order
   mails=$(curl  -u $username:$password --silent "https://mail.google.com/mail/feed/atom"\
@@ -24,39 +26,44 @@ fetch_mails () {
   if [[ -z $mails ]]; then echo "Couldn't retrieve mails ૮◞ ﻌ ◟ა"; exit 1; fi
   # Read line by line and operate
   while IFS= read -r line; do
-    # Mails fetch with UTC time, extract it and convert to locale
-    date=$(date --date=$(echo $line | sed 's/\[\(.*T.*Z\)\].*/\1/g') "+%x %X")
     # Search for pattern and extract code
-    if [[ $line =~ .*:\ AuthCode: ]]; then
-      auth=$(echo $line | sed 's/.*AuthCode: \(.*\)$/\1/g')
+    if [[ $line =~ .*:\ $prefix ]]; then
+      # Mails fetch with UTC time, extract it and convert to locale
+      date=$(date --date=$(echo $line | sed 's/\[\(.*T.*Z\)\].*/\1/g') "+%x %X")
+      auth=$(echo $line | sed "s/.*$prefix \(.*\)$/\1/g")
       # echo $auth
     fi
   done <<< "$mails"
 }
 
-echo ૮ ᴖﻌᴖა Sυρєя Sєηαѕα Ç0∂3 R3тяiєνєя ૮–ﻌ– ა
-echo ꒷꒦꒷꒦꒷꒦꒷꒦꒷꒦꒷꒦꒷꒦꒷꒦꒷꒦꒷꒦꒷
+echo ૮ ᴖﻌᴖა Sυρєя Ç0∂3 R3тяiєνєя ૮–ﻌ– ა
+echo ꒷꒦꒷꒦꒷꒦꒷꒦꒷꒦꒷꒦꒷꒦꒷꒦꒷
 echo $VERSION
 echo
 fetch_mails 10
 code=$auth
 if [[ -n $code ]]; then
-  echo Your last code was: $code ୭̥⋆*｡
+  echo "Your last code (on $date) was: $code ୭̥⋆*｡"
 else
   echo No recent codes ૮◞ ﻌ ◟ა
 fi
-echo "(Run 'mw-vpn senasa-central' in another terminal to get a new code.)"
+echo "(Run what you need to run in order to get a new code.)"
 printf " 🐾  Checking mails (CRTL+C to quit)  "
 new_code=$auth
 while [ $code == $new_code ]; do
   printf '🌕︎'
-  for X in '🌕︎' '🌔︎' '🌓︎'  '🌒︎' '🌑︎' '🌘︎' '🌗︎' '🌖︎' '🌕︎'; do echo -en "\b$X"; sleep 0.1; done;
+  for frame in '🌕︎' '🌔︎' '🌓︎' '🌒︎' '🌑︎' '🌘︎' '🌗︎' '🌖︎' '🌕︎'; do
+    echo -en "\b$frame"
+    sleep 0.1
+  done
   fetch_mails 5
   new_code=$auth
   # echo $auth 
   # sleep 0.1
 done
 echo
-echo "૮ ⚆ﻌ⚆ა New code found: $new_code"
+echo "૮ ⚆ﻌ⚆ა New code found ($date): $new_code"
 echo "Have fun! ૮ ˙Ⱉ˙ ა rawr!"
-
+alertdone "૮ ⚆ﻌ⚆ა New code found ($date): $new_code"
+#sleep 2
+#espeak $new_code
