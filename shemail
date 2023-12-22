@@ -2,10 +2,11 @@
 #Desc: Fetch auth code tool
 VERSION="v0.0.3"
 
-SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+DIR_PATH=$(dirname $(readlink -f "${BASH_SOURCE:-$0}"))
+
 # Decrypts passwords quietly
 # see: https://wiki.archlinux.org/index.php/Mutt#Passwords_management
-. <(gpg -qd "$SCRIPTPATH/.creds.gpg")
+. <(gpg -qd "$DIR_PATH/.creds.gpg")
 
 # Username and password for your Gmail/G Suite account
 username=$my_user
@@ -65,6 +66,6 @@ done
 echo
 echo "૮ ⚆ﻌ⚆ა New code found ($date): $new_code"
 echo "Have fun! ૮ ˙Ⱉ˙ ა rawr!"
-$SCRIPTPATH/alertdone "૮ ⚆ﻌ⚆ა New code found ($date): $new_code"
+$DIR_PATH/alertdone "૮ ⚆ﻌ⚆ა New code found ($date): $new_code"
 #sleep 2
 #espeak $new_code
