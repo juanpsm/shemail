@@ -1,0 +1,5 @@
+#!/bin/bash
+SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+message=${1:-"Finished working"}
+notify-send -t 10000 -i $SCRIPTPATH/img/cab_view.png "Process Finished" "$message"
+paplay $SCRIPTPATH/tunes/smb_coin.wav
