@@ -3,18 +3,30 @@
 
 # Decrypts passwords quietly
 # see: https://wiki.archlinux.org/index.php/Mutt#Passwords_management
-#source "gpg -dq $HOME/creds.gpg |"
-. <(gpg -qd "$HOME/creds.gpg")
+. <(gpg -qd "creds.gpg")
 
 # Username and password for your Gmail/G Suite account
 username=$my_user
 # Password assigned from decrypted file
 password=$my_pass
 
-SHOW_COUNT=1 # No of recent unread mails to be shown
+SHOW_COUNT=3 # No of recent unread mails to be shown
 
 echo
-curl  -u $username:$password --silent "https://mail.google.com/mail/feed/atom" | \
-tr -d '\n' | sed 's:</entry>:\n:g' |\
- sed -n 's/.*<title>\(.*\)<\/title.*<author><name>\([^<]*\)<\/name><email>\([^<]*\).*/From: \2 [\3] \nSubject: \1\n/p' | \
-head -n $(( $SHOW_COUNT * 3 ))
+mails=$(curl  -u $username:$password --silent "https://mail.google.com/mail/feed/atom" | \
+tr -d '\n' | sed 's:</entry>:\n:g' | \
+head -n $SHOW_COUNT | \
+sed -n 's/.*<title>\(.*\)<\/title.*<issued>\([^<]*\).*<author><name>\([^<]*\)<\/name><email>\([^<]*\).*/From: \3 [\4] at \2 \nSubject: \1\n/p'
+)
+
+while IFS= read -r line; do
+  if [[ $line =~ .*at.* ]]; then
+    date=$(echo $line | sed -e "s/.* at \(.*T.*Z\)/\1/g")
+    date=$(date --date=$date +%x-%X)
+    echo "... $line ..."
+    echo $date
+  else
+    echo $line
+  fi
+done <<< "$mails"
+
